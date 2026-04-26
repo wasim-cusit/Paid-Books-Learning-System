@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  STUDENT
+  TEACHER
+  SUPER_ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  passwordHash   String
+  fullName       String
+  role           RoleName
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  refreshTokens  RefreshToken[]
+  purchases      Purchase[]
+  progressEvents ProgressEvent[]
+}
+
+model Course {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  price       Decimal       @db.Decimal(10, 2)
+  teacherId   String
+  isPublished Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  purchases   Purchase[]
+  lessons     Lesson[]
+}
+
+model Lesson {
+  id        String    @id @default(cuid())
+  courseId  String
+  title     String
+  orderNo   Int
+  createdAt DateTime  @default(now())
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress  ProgressEvent[]
+}
+
+model Purchase {
+  id             String        @id @default(cuid())
+  userId         String
+  courseId       String
+  amount         Decimal       @db.Decimal(10, 2)
+  currency       String
+  provider       String
+  providerRef    String?
+  status         PaymentStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course         Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model ProgressEvent {
+  id            String   @id @default(cuid())
+  userId        String
+  courseId      String
+  lessonId      String?
+  completionPct Int
+  watchTimeSec  Int      @default(0)
+  activeTimeSec Int      @default(0)
+  score         Int?
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson        Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

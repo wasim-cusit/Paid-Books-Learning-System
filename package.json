@@ -1,0 +1,16 @@
+{
+  "name": "paid-books-learning-system",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "echo \"Run dev:api and dev:web in separate terminals\"",
+    "dev:api": "npm run dev -w @pbls/api",
+    "dev:web": "npm run dev -w @pbls/web",
+    "build": "npm run build -ws",
+    "lint": "npm run lint -ws"
+  }
+}
